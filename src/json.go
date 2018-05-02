@@ -23,7 +23,7 @@ func main() {
   }
 }
 
-func readJsonFile(filePath string) map[string]interface{} {
+func readJsonFile(filePath string) map[string]string {
   raw, err := ioutil.ReadFile(filePath)
 
   if err != nil {
@@ -32,7 +32,7 @@ func readJsonFile(filePath string) map[string]interface{} {
     fmt.Printf("Using `%s` as input file.\n\n", filePath)
   }
 
-  var c map[string]interface{}
+  var c map[string]string
   if err := json.Unmarshal(raw, &c); err != nil {
     panic(err)
   }
