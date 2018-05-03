@@ -8,7 +8,7 @@ Clone this repository. Inside checkout:
 
 ```bash
 # if using Go < 1.8
-export GOPATH=/home/you/go
+export GOPATH=/home/<your_user>/go
 
 # fetch dependencies (aws sdk, as listed in main.go) into $GOPATH
 go get -d
@@ -22,22 +22,16 @@ env GIT_TERMINAL_PROMPT=1 go get -v github.com/projectThor/get-ssm-params
 
 ## Usage
 
-From -h output:
+From -help output:
 
 ```
-Usage of get-ssm-params:
-  -awsregion string
-      [$SSM_AWS_REGION] AWS region (default "eu-central-1")
-  -env string
-      [$SSM_ENV] environment name to use (PROD, STAG, ...)
-  -extraparams string
-      [$SSM_EXTRA_PARAMS] parameters to fetch (explicit)
-  -params string
-      [$SSM_PARAMS] parameters to fetch (prefixes env+service)
-  -service string
-      [$SSM_SERVICE] service name to use (YVES, ZED, ...)
-  -version
-      Print version of get-ssm-params
+USAGE: go-ssm-params [file.json].
+It will try to read a valid flat JSON from stdin if no file passed.
+
+Examples reading from stdin:
+----------------------------
+        $ cat file.json | go-ssm-params
+        $ go-ssm-params < file.json
 ```
 
 ### Examples
@@ -66,53 +60,6 @@ get-ssm-params npm run
 If one of the parameters cannot be retrieved, `get-ssm-params` will `exit(1)`.
 By default, `get-ssm-params` uses AWS region `eu-central-1`. To override,
 use `-awsregion` command line option or define `SSM_AWS_REGION` environment variable.
-
-Example usage in Dockerfile:
-
-```
-## usage WITHOUT get-ssm-params
-
-ENTRYPOINT ["/tini", "--"]
-CMD ["/usr/local/bin/uwsgi", "--ini", "/config/app.ini"]
-
-## usage WITH get-ssm-params
-
-# copy get-ssm-params binary to root directory of image
-ADD get-ssm-params .
-# keep entrypoint as-is
-ENTRYPOINT ["/tini", "--"]
-# adjust command to let get-ssm-params exec() original command
-CMD ["/get-ssm-params", "/usr/local/bin/uwsgi", "--ini", "/config/app.ini"]
-```
-
-The above example with get-ssm-params used would expect `SSM_ENV`, `SSM_SERVICE` and `SSM_PARAMS` to
-be passed via regular container environment variables. Corresponding example CloudFormation stack:
-
-```yaml
-  TaskDefinition:
-    Type: AWS::ECS::TaskDefinition
-    ...
-          Environment:
-            -
-              Name: SSM_ENV
-              Value: dev
-            -
-              Name: SSM_SERVICE
-              Value: myApp
-            -
-              Name: SSM_PARAMS
-              Value: LDAPBINDPW,ACCESS_KEY
-```
-
-Corresponding parameters must be put into parameter store before container launch, i.e.
-
-```bash
-aws ssm put-parameter --name dev_myApp_LDAPBINDPW --value "APassword123" --type SecureString \
-                      --key-id "...use key id..." --region eu-central-1
-```
-
-Ensure to only grant access to desired containers by following the
-[AWS IAM Roles for Tasks guide](https://aws.amazon.com/blogs/compute/managing-secrets-for-amazon-ecs-applications-using-parameter-store-and-iam-roles-for-tasks/)
 
 ## Example error messages
 
